@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "184002870817",
+    "project_id": "fir-1d2f6",
+    "storage_bucket": "fir-1d2f6.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:184002870817:android:f648d13ea1272b39c5ad60",
+        "android_client_info": {
+          "package_name": "me.juanbuitrago.unabshop"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB0GSPqOwWoqRTYK_GHm8kwBaixdL125iY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
