@@ -8,9 +8,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
@@ -34,6 +37,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
@@ -41,6 +45,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.google.firebase.auth.auth
 
 @Preview
@@ -54,13 +60,17 @@ fun LoginScreen(onClickRegister :()-> Unit = {}, onSuccessfullogin :() -> Unit =
 //eSTADOS
     var inputEmail by remember { mutableStateOf("") }
     var inputPassword by remember {mutableStateOf("")  }
-var loginError by remember { mutableStateOf("") }
+    var loginError by remember { mutableStateOf("") }
+    var emailError by remember { mutableStateOf("") }
+    var passwordError by remember {mutableStateOf("")}
 
     Scaffold { paddingValues ->
         Column(
             modifier = Modifier
-                .fillMaxSize()
                 .padding(paddingValues)
+                .fillMaxSize()
+                .imePadding()
+                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 32.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.Companion.CenterHorizontally
@@ -96,8 +106,18 @@ var loginError by remember { mutableStateOf("") }
                         tint = Color(0xFF666666) // Color gris
                     )
                 },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Companion.Email),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Companion.Email,
+                    capitalization = KeyboardCapitalization.None,
+                autoCorrect = false,),
                 modifier = Modifier.fillMaxWidth(),
+                supportingText =  {
+                    if (emailError.isNotEmpty()){
+                        Text(
+                            text = emailError,
+                            color = Color.Red
+                        )
+                    }
+                },
                 shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
 
                 )
@@ -117,8 +137,19 @@ var loginError by remember { mutableStateOf("") }
                     )
                 },
                 visualTransformation = PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Companion.Password),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Companion.Password,
+                    capitalization = KeyboardCapitalization.None,
+                    autoCorrect = false,),
                 modifier = Modifier.fillMaxWidth(),
+
+                supportingText =  {
+                    if (passwordError.isNotEmpty()){
+                        Text(
+                            text = passwordError,
+                            color = Color.Red
+                        )
+                    }
+                },
                 shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Color(0xFF6200EE), // Color morado
@@ -141,16 +172,31 @@ var loginError by remember { mutableStateOf("") }
             // Botón de Iniciar Sesión
             Button(
                 onClick = {
-                auth.signInWithEmailAndPassword(inputEmail,inputPassword)
-                    .addOnCompleteListener(activity) { task ->
-                    if (task.isSuccessful){
-                        onSuccessfullogin( )
+
+                    val isValidEmail: Boolean = validateEmail(inputEmail).first
+                    val isValidPassword= validatePassword(inputPassword).first
+                    emailError = validateEmail(inputEmail).second
+                    passwordError = validatePassword(inputPassword).second
+
+                    if (isValidEmail && isValidPassword){
+                        auth.signInWithEmailAndPassword(inputEmail,inputPassword)
+                            .addOnCompleteListener(activity) { task ->
+                                if (task.isSuccessful){
+                                    onSuccessfullogin( )
+                                }else{
+                                    loginError = when(task.exception){
+                                        is FirebaseAuthInvalidCredentialsException -> "Correo o contraseña incorrecta"
+                                        is FirebaseAuthInvalidUserException -> "No existe una cuenta con este correo"
+                                        else -> "Error al iniciar sesion. Intenta de nuevo"
+                                    }
+                                }
+                            }
+
+
                     }else{
-     loginError = "Error al iniciar sesion"
-                    }
-
 
                     }
+
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -166,6 +212,8 @@ var loginError by remember { mutableStateOf("") }
             }
             Spacer(modifier = Modifier.height(16.dp))
             // Enlace para Registrarse
+
+
             TextButton(onClick = onClickRegister) {
                 Text(
                     text = "¿No tienes una cuenta? Regístrate",

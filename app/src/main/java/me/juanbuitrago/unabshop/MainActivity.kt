@@ -49,46 +49,25 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.util.unpackAbsFloat1
 import androidx.navigation.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import me.juanbuitrago.unabshop.ui.theme.UnabShopTheme
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+enableEdgeToEdge()
 
         setContent {
-            val navController = rememberNavController()
-            val startDestination = "login"
+
+                NavigationApp()
 
 
-            androidx.navigation.compose.NavHost(navController = navController, startDestination = startDestination) {
-                composable("login") {
-                    LoginScreen()
-                }
-                composable("register") {
-                    RegisterScreen()
-                }
-                composable("home") {
-                    HomeScreen()
+
                 }
             }
         }
-    }
-}
 
 
-
-
-
-
-@Preview(showBackground = true)
-@Composable
-fun DefaultPreview() {
-    UnabShopTheme {
-
-        LoginScreen()
-    }
-}
