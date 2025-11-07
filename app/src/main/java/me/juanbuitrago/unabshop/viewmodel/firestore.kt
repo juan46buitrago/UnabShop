@@ -1,35 +1,52 @@
 package me.juanbuitrago.unabshop.viewmodel
 
-import com.google.firebase.Firebase
+
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.firestore
+
 import me.juanbuitrago.unabshop.model.Producto
 
-class FirestoreHelper {
-    private val db = Firebase.firestore
-
-    fun agregarProducto(producto: Producto, onSuccess: () -> Unit, onError: (Exception) -> Unit) {
-        db.collection("productos")
+class Firestore {
+    fun agregarProducto(
+        firestore: FirebaseFirestore,
+        producto: Producto,
+        onSuccess: () -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        firestore.collection("productos")
             .add(producto)
             .addOnSuccessListener { onSuccess() }
-            .addOnFailureListener { e -> onError(e) }
+            .addOnFailureListener { onFailure(it) }
     }
 
-    fun obtenerProductos(callback: (List<Producto>) -> Unit) {
-        db.collection("productos")
+    fun obtenerProductos(
+        firestore: FirebaseFirestore,
+        onSuccess: (List<Producto>) -> Unit
+    ) {
+        firestore.collection("productos")
             .get()
             .addOnSuccessListener { result ->
-                val productos = result.map { doc ->
-                    doc.toObject(Producto::class.java).copy(id = doc.id)
+                val lista = result.map { doc ->
+                    Producto(
+                        id = doc.id,
+                        nombre = doc.getString("nombre") ?: "",
+                        descripcion = doc.getString("descripcion") ?: "",
+                        precio = doc.getDouble("precio") ?: 0.0
+                    )
                 }
-                callback(productos)
+                onSuccess(lista)
             }
     }
 
-    fun eliminarProducto(id: String, onSuccess: () -> Unit, onError: (Exception) -> Unit) {
-        db.collection("productos").document(id)
+    fun eliminarProducto(
+        firestore: FirebaseFirestore,
+        id: String,
+        onSuccess: () -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        firestore.collection("productos")
+            .document(id)
             .delete()
             .addOnSuccessListener { onSuccess() }
-            .addOnFailureListener { e -> onError(e) }
+            .addOnFailureListener { onFailure(it) }
     }
 }
